@@ -2761,12 +2761,16 @@ EXPORT_SYMBOL_GPL(kiocb_invalidate_pages);
  * * number of bytes copied, even for partial reads
  * * negative error code (or 0 if IOCB_NOIO) if nothing was read
  */
+atomic64_t total_read_bytes = ATOMIC64_INIT(0);
+
 ssize_t
 generic_file_read_iter(struct kiocb *iocb, struct iov_iter *iter)
 {
 	size_t count = iov_iter_count(iter);
 	ssize_t retval = 0;
 
+	atomic64_add(count, &total_read_bytes); // 総readバイト数を記録
+	
 	if (!count)
 		return 0; /* skip atime */
 
@@ -2806,6 +2810,7 @@ generic_file_read_iter(struct kiocb *iocb, struct iov_iter *iter)
 	return filemap_read(iocb, iter, retval);
 }
 EXPORT_SYMBOL(generic_file_read_iter);
+EXPORT_SYMBOL(total_read_bytes);
 
 /*
  * Splice subpages from a folio into a pipe.

@@ -220,6 +220,7 @@ static inline void lru_gen_update_size(struct lruvec *lruvec, struct folio *foli
 
 static inline bool lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
 {
+        static unsigned long counter = 0; // 静的カウンタ
 	unsigned long seq;
 	unsigned long flags;
 	int gen = folio_lru_gen(folio);
@@ -231,6 +232,11 @@ static inline bool lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio,
 
 	if (folio_test_unevictable(folio) || !lrugen->enabled)
 		return false;
+	/*
+	 * min_seq[type] 〜 max_seq-1 の範囲で擬似的に seq を分散させる
+	 */
+	unsigned long min = lrugen->min_seq[type];
+	unsigned long max = lrugen->max_seq;
 	/*
 	 * There are four common cases for this page:
 	 * 1. If it's hot, i.e., freshly faulted in, add it to the youngest
@@ -254,6 +260,13 @@ static inline bool lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio,
 	else
 		seq = lrugen->min_seq[type] + 1;
 
+	if (min >= max) {
+	  seq = min;
+	} else {
+	  unsigned long range = max - min;
+	  seq = min + (counter++ % range);
+	}
+	
 	gen = lru_gen_from_seq(seq);
 	flags = (gen + 1UL) << LRU_GEN_PGOFF;
 	/* see the comment on MIN_NR_GENS about PG_active */
