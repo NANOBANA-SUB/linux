@@ -255,6 +255,9 @@ static inline bool lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio,
 		seq = lrugen->min_seq[type] + 1;
 
 	gen = lru_gen_from_seq(seq);
+
+	printk(KERN_INFO "lru_gen_add_folio: seq=%lu, gen=%d \n", seq, gen);
+	
 	flags = (gen + 1UL) << LRU_GEN_PGOFF;
 	/* see the comment on MIN_NR_GENS about PG_active */
 	set_mask_bits(&folio->flags, LRU_GEN_MASK | BIT(PG_active), flags);

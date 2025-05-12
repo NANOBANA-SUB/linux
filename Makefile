@@ -2,7 +2,7 @@
 VERSION = 6
 PATCHLEVEL = 11
 SUBLEVEL = 0
-EXTRAVERSION =
+EXTRAVERSION = "seq_gen_printed_edition"
 NAME = Baby Opossum Posse
 
 # *DOCUMENTATION*
