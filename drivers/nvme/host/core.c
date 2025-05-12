@@ -1037,6 +1037,8 @@ void nvme_cleanup_cmd(struct request *req)
 }
 EXPORT_SYMBOL_GPL(nvme_cleanup_cmd);
 
+atomic64_t nvme_read_bytes = ATOMIC_INIT(0);
+
 blk_status_t nvme_setup_cmd(struct nvme_ns *ns, struct request *req)
 {
 	struct nvme_command *cmd = nvme_req(req)->cmd;
@@ -1073,6 +1075,8 @@ blk_status_t nvme_setup_cmd(struct nvme_ns *ns, struct request *req)
 		ret = nvme_setup_discard(ns, req, cmd);
 		break;
 	case REQ_OP_READ:
+	        size_t io_bytes = blk_rq_bytes(req);
+		atomic64_add(io_bytes, &nvme_read_bytes); // nvmeで読み込まれたバイト数
 		ret = nvme_setup_rw(ns, req, cmd, nvme_cmd_read);
 		break;
 	case REQ_OP_WRITE:
@@ -1091,7 +1095,7 @@ blk_status_t nvme_setup_cmd(struct nvme_ns *ns, struct request *req)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(nvme_setup_cmd);
-
+EXPORT_SYMBOL(nvme_read_bytes);
 /*
  * Return values:
  * 0:  success
