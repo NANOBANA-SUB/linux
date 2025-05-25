@@ -231,6 +231,8 @@ static inline bool lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio,
 
 	if (folio_test_unevictable(folio) || !lrugen->enabled)
 		return false;
+
+	printk(KERN_INFO "lru_gen_add_folio_before: seq=%lu, gen=%d \n", lrugen->max_seq, gen);
 	/*
 	 * There are four common cases for this page:
 	 * 1. If it's hot, i.e., freshly faulted in, add it to the youngest
@@ -256,7 +258,7 @@ static inline bool lru_gen_add_folio(struct lruvec *lruvec, struct folio *folio,
 
 	gen = lru_gen_from_seq(seq);
 
-	printk(KERN_INFO "lru_gen_add_folio: seq=%lu, gen=%d \n", seq, gen);
+	printk(KERN_INFO "lru_gen_add_folio_after: seq=%lu, gen=%d \n", seq, gen);
 	
 	flags = (gen + 1UL) << LRU_GEN_PGOFF;
 	/* see the comment on MIN_NR_GENS about PG_active */
